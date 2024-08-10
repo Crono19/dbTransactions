@@ -50,15 +50,15 @@ public class HelloController {
     }
 
     private void loadClientsFromDatabase() {
-        DataBaseConnection dataBaseConnection = new DataBaseConnection();
-        Connection connection = dataBaseConnection.getConnection();
-
-        String query = "SELECT c.Nombre, c.Apellido, c.Direccion, t.Numero FROM Cliente c LEFT JOIN Telefono t ON c.idCliente = t.Cliente_idCliente";
-
         try {
+            String query = "SELECT c.Nombre, c.Apellido, c.Direccion, t.Numero FROM Cliente c LEFT JOIN Telefono t ON c.idCliente = t.Cliente_idCliente";
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
 
+            // Clear existing data
+            clientData.clear();
+
+            // Populate the ObservableList with new data
             while (resultSet.next()) {
                 String name = resultSet.getString("Nombre");
                 String lastName = resultSet.getString("Apellido");
@@ -67,31 +67,34 @@ public class HelloController {
                 clientData.add(new client(name, lastName, address, phone));
             }
 
+            // Set the updated list to the TableView
+            clientTable.setItems(clientData);
+            clientTable.refresh();  // Ensure the table view is refreshed
+
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
     @FXML
     private void initialize() {
-        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        addressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
-        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
+        DataBaseConnection dataBaseConnection = new DataBaseConnection();
+        connection = dataBaseConnection.getConnection();
 
-        // Load data from the database
-        loadClientsFromDatabase();
+        if (connection != null) {
+            nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+            lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+            addressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
+            phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
 
-        // Assign the data to the table
-        clientTable.setItems(clientData);
+            // Load data from the database
+            loadClientsFromDatabase();
+
+            // Assign the data to the table
+            clientTable.setItems(clientData);
+        } else {
+            System.out.println("Failed to establish database connection.");
+        }
     }
 
     @FXML
@@ -160,21 +163,12 @@ public class HelloController {
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted.");
 
-            for ( int i = 0; i<clientTable.getItems().size(); i++) {
-                clientTable.getItems().clear();
-            }
+            // Clear and reload the data from the database
+            clientData.clear();
+            loadClientsFromDatabase();
 
-            String query = "SELECT c.Nombre, c.Apellido, c.Direccion, t.Numero FROM Cliente c LEFT JOIN Telefono t ON c.idCliente = t.Cliente_idCliente";
-            Statement statement = connection.createStatement();
-            ResultSet resultSet2 = statement.executeQuery(query);
-
-            while (resultSet2.next()) {
-                String name = resultSet2.getString("Nombre");
-                String lastName = resultSet2.getString("Apellido");
-                String address = resultSet2.getString("Direccion");
-                String phone2 = resultSet2.getString("Numero");
-                System.out.println(name + " " + lastName + " " + address + " " + phone2);
-            }
+            // Refresh the TableView to display the latest data
+            clientTable.refresh();
 
             clearTxt();
 
@@ -218,17 +212,12 @@ public class HelloController {
                 int rowsAffected = insertPhoneStmt.executeUpdate();
                 System.out.println(rowsAffected + " row(s) inserted.");
 
-                String query = "SELECT c.Nombre, c.Apellido, c.Direccion, t.Numero FROM Cliente c LEFT JOIN Telefono t ON c.idCliente = t.Cliente_idCliente";
-                Statement statement = connection.createStatement();
-                ResultSet resultSet2 = statement.executeQuery(query);
+                // Clear and reload the data from the database
+                clientData.clear();
+                loadClientsFromDatabase();
 
-                while (resultSet2.next()) {
-                    String name = resultSet2.getString("Nombre");
-                    String lastName = resultSet2.getString("Apellido");
-                    String address = resultSet2.getString("Direccion");
-                    String phone2 = resultSet2.getString("Numero");
-                    System.out.println(name + " " + lastName + " " + address + " " + phone2);
-                }
+                // Refresh the TableView to display the latest data
+                clientTable.refresh();
 
                 txtPhone.clear();
             } else {
