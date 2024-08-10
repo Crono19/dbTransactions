@@ -117,13 +117,18 @@ public class HelloController {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.commit();
-                connection.close();
                 System.out.println("Transaction committed.");
+                // Clear and reload the data from the database
+                clientData.clear();
+                loadClientsFromDatabase();
+
+                // Refresh the TableView to display the latest data
+                clientTable.refresh();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.exit(0);
+
     }
 
     @FXML
@@ -131,13 +136,18 @@ public class HelloController {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.rollback();
-                connection.close();
                 System.out.println("Transaction rolled back.");
+                // Clear and reload the data from the database
+                clientData.clear();
+                loadClientsFromDatabase();
+
+                // Refresh the TableView to display the latest data
+                clientTable.refresh();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.exit(0);
+
     }
 
     @FXML
