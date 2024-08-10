@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="286.0" prefWidth="589.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.basictransactions.HelloController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="286.0" prefWidth="754.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.basictransactions.HelloController">
 
     <Button layoutX="14.0" layoutY="211.0" mnemonicParsing="false" onAction="#insertClient" prefHeight="25.0" prefWidth="149.0" text="Insertar" />
     <Label layoutX="14.0" layoutY="39.0" text="Nombre" />
@@ -28,4 +28,6 @@
    <Button layoutX="93.0" layoutY="182.0" mnemonicParsing="false" onAction="#insertPhone" prefHeight="25.0" prefWidth="70.0" text="Insertar" />
    <Accordion layoutX="49.0" layoutY="85.0" />
    <AnchorPane layoutX="-42.0" layoutY="-190.0" prefHeight="200.0" prefWidth="200.0" />
+   <Button layoutX="593.0" layoutY="14.0" mnemonicParsing="false" onAction="#changeIsolation" prefHeight="25.0" prefWidth="149.0" text="Cambiar aislamiento" />
+   <Label fx:id="labelIsolation" layoutX="593.0" layoutY="48.0" text="Nivel actual:" />
 </Pane>
