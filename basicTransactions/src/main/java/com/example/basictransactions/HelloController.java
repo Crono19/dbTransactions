@@ -11,6 +11,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.sql.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class HelloController {
 
@@ -56,6 +59,7 @@ public class HelloController {
                 connection.setAutoCommit(false); // Start in manual commit mode
                 connection.setTransactionIsolation(currentIsolationLevel);
                 labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
+                System.out.println("Initialized connection with isolation level: " + getIsolationLevelName(currentIsolationLevel));
             } else {
                 System.out.println("Failed to establish database connection.");
             }
@@ -80,13 +84,12 @@ public class HelloController {
         txtName.clear();
         txtLastName.clear();
         txtAddress.clear();
+        txtPhone.clear();
     }
 
     private void loadClientsFromDatabase() {
         try {
-            // IMPORTANT: Run this query in a new transaction to see uncommitted data.
             String query = "SELECT c.Nombre, c.Apellido, c.Direccion, t.Numero FROM Cliente c LEFT JOIN Telefono t ON c.idCliente = t.Cliente_idCliente";
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED); // Ensure we are reading uncommitted data
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
 
@@ -119,26 +122,31 @@ public class HelloController {
         };
     }
 
-
     @FXML
     private void initialize() {
         initializeConnection();
         setupTableView();
         loadClientsFromDatabase();
+
+        // Set up a periodic refresh task
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            reloadData();
+        }, 0, 2, TimeUnit.SECONDS);  // Refresh every 2 seconds
+
+        // Add this shutdown hook to cleanly exit the scheduler
+        Runtime.getRuntime().addShutdownHook(new Thread(scheduler::shutdown));
     }
 
     @FXML
     public void startTransaction(ActionEvent actionEvent) {
-        if (connection == null) {
-            initializeConnection();
-        } else {
-            try {
-                connection.setAutoCommit(false);
-                System.out.println("Transaction started.");
-                labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        initializeConnection();  // Re-initialize the connection for a fresh transaction
+        try {
+            connection.setAutoCommit(false);
+            System.out.println("Transaction started with isolation level: " + getIsolationLevelName(currentIsolationLevel));
+            labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -148,7 +156,7 @@ public class HelloController {
             if (connection != null && !connection.isClosed()) {
                 connection.commit();
                 System.out.println("Transaction committed.");
-                reloadData();
+                reloadData();  // Reload data to reflect changes
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -161,7 +169,7 @@ public class HelloController {
             if (connection != null && !connection.isClosed()) {
                 connection.rollback();
                 System.out.println("Transaction rolled back.");
-                reloadData();
+                reloadData();  // Reload data to reflect the rollback
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -191,7 +199,6 @@ public class HelloController {
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted.");
 
-            // Reload to see if other sessions can view uncommitted data
             reloadData();
             clearTxt();
 
@@ -248,7 +255,6 @@ public class HelloController {
             e.printStackTrace();
         }
     }
-
 
     @FXML
     public void insertPhone(ActionEvent actionEvent) {
@@ -336,5 +342,6 @@ public class HelloController {
     @FXML
     public void reload(ActionEvent actionEvent) {
         reloadData();
+        initializeConnection();
     }
 }
