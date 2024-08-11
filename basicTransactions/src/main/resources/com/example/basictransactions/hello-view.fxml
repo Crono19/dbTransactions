@@ -29,7 +29,15 @@
                </ImageView>
             </children>
          </HBox>
-         <Label fx:id="labelIsolation" layoutX="593.0" layoutY="129.0" prefHeight="45.0" prefWidth="204.0" text="Nivel actual:" textFill="WHITE" />
+         <Label fx:id="labelIsolation" layoutX="594.0" layoutY="157.0" prefHeight="45.0" prefWidth="204.0" text="Nivel actual:" textFill="WHITE" />
+         <Button layoutX="594.0" layoutY="213.0" mnemonicParsing="false" onAction="#reload" prefHeight="45.0" prefWidth="204.0" style="-fx-background-color: #8C7CE0; -fx-border-color: #9BA6C4; -fx-border-radius: 10; -fx-background-radius: 10;" text="Refrescar tabla" textFill="WHITE">
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+            <font>
+               <Font name="Arial" size="12.0" />
+            </font>
+         </Button>
       </children>
    </AnchorPane>
 
@@ -46,15 +54,32 @@
     <TextField fx:id="txtAddress" layoutX="14.0" layoutY="241.0" />
     <Label layoutX="14.0" layoutY="182.0" text="Apellido" textFill="WHITE" />
     <Label layoutX="14.0" layoutY="224.0" text="Dirección" textFill="WHITE" />
-   <Button alignment="CENTER" layoutX="14.0" layoutY="381.0" mnemonicParsing="false" onAction="#rollBack" prefHeight="59.0" prefWidth="70.0" text="Roll Back">
+   <Button alignment="TOP_CENTER" cache="true" cacheHint="SPEED" contentDisplay="BOTTOM" depthTest="ENABLE" layoutX="14.0" layoutY="381.0" mnemonicParsing="false" onAction="#rollBack" prefHeight="59.0" prefWidth="70.0" text="Roll Back" textAlignment="JUSTIFY" textOverrun="LEADING_ELLIPSIS">
       <cursor>
          <Cursor fx:constant="HAND" />
-      </cursor></Button>
-   <Button layoutX="93.0" layoutY="381.0" mnemonicParsing="false" onAction="#commit" prefHeight="59.0" prefWidth="70.0" text="Commit">
+      </cursor>
+      <graphic>
+         <ImageView fitHeight="20.0" fitWidth="37.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+               <Image url="@../../../images/arrow.png" />
+            </image>
+            <cursor>
+               <Cursor fx:constant="HAND" />
+            </cursor>
+         </ImageView>
+      </graphic></Button>
+   <Button alignment="TOP_CENTER" contentDisplay="BOTTOM" layoutX="93.0" layoutY="381.0" mnemonicParsing="false" onAction="#commit" prefHeight="59.0" prefWidth="70.0" text="Commit">
       <cursor>
          <Cursor fx:constant="HAND" />
-      </cursor></Button>
-   <Button cache="true" layoutX="14.0" layoutY="100.0" mnemonicParsing="false" onAction="#startTransaction" prefHeight="25.0" prefWidth="149.0" style="-fx-border-radius: 10; -fx-border-color: #9BA6C4; -fx-background-color: #424768; -fx-background-radius: 10;" styleClass="Botoncito" text="Iniciar transacción" textFill="WHITE" textOverrun="CENTER_ELLIPSIS">
+      </cursor>
+      <graphic>
+         <ImageView fitHeight="19.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+               <Image url="@../../../images/yes.png" />
+            </image>
+         </ImageView>
+      </graphic></Button>
+   <Button cache="true" cacheHint="SCALE" contentDisplay="TOP" depthTest="ENABLE" layoutX="14.0" layoutY="100.0" mnemonicParsing="false" onAction="#startTransaction" prefHeight="25.0" prefWidth="149.0" style="-fx-border-radius: 10; -fx-border-color: #9BA6C4; -fx-background-color: #424768; -fx-background-radius: 10;" styleClass="Botoncito" text="Iniciar transacción" textFill="WHITE" textOverrun="CLIP">
       <cursor>
          <Cursor fx:constant="HAND" />
       </cursor>
@@ -77,16 +102,16 @@
          <Cursor fx:constant="HAND" />
       </cursor></Button>
    <Accordion layoutX="49.0" layoutY="85.0" />
-   <Button layoutX="593.0" layoutY="100.0" mnemonicParsing="false" onAction="#changeIsolation" prefHeight="25.0" prefWidth="204.0" text="Cambiar aislamiento">
+   <Button layoutX="593.0" layoutY="100.0" mnemonicParsing="false" onAction="#changeIsolation" prefHeight="45.0" prefWidth="204.0" style="-fx-border-color: #9BA6C4; -fx-background-color: #8C7CE0; -fx-background-radius: 10; -fx-border-radius: 10;" text="Cambiar aislamiento" textFill="WHITE">
       <cursor>
          <Cursor fx:constant="HAND" />
-      </cursor></Button>
-   <Button layoutX="593.0" layoutY="178.0" mnemonicParsing="false" onAction="#reload" prefHeight="25.0" prefWidth="204.0" text="Refrescar tabla">
-      <cursor>
-         <Cursor fx:constant="HAND" />
-      </cursor></Button>
+      </cursor>
+      <font>
+         <Font name="Arial Bold" size="12.0" />
+      </font></Button>
    <Button layoutX="14.0" layoutY="347.0" mnemonicParsing="false" onAction="#updateClient" prefHeight="25.0" prefWidth="149.0" text="Modificar">
       <cursor>
          <Cursor fx:constant="HAND" />
-      </cursor></Button>
+      </cursor>
+   </Button>
 </Pane>
