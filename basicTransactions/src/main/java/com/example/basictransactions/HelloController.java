@@ -4,6 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -40,8 +41,21 @@ public class HelloController {
     @FXML
     private TextField txtPhone;
 
+    @FXML
+    private Label labelIsolation;
+
     private final ObservableList<client> clientData = FXCollections.observableArrayList();
     private Connection connection;
+    private int currentIsolationLevel;
+
+    private void reloadData(){
+        // Clear and reload the data from the database
+        clientData.clear();
+        loadClientsFromDatabase();
+
+        // Refresh the TableView to display the latest data
+        clientTable.refresh();;
+    }
 
     private void clearTxt(){
         txtName.clear();
@@ -76,6 +90,18 @@ public class HelloController {
         }
     }
 
+    private String getIsolationLevelName(int isolationLevel) {
+        return switch (isolationLevel) {
+            case Connection.TRANSACTION_READ_UNCOMMITTED -> "Lecturas no comprometidas";
+            case Connection.TRANSACTION_READ_COMMITTED -> "Lecturas comprometidas";
+            case Connection.TRANSACTION_REPEATABLE_READ -> "Lecturas repetibles";
+            case Connection.TRANSACTION_SERIALIZABLE -> "Serializable";
+            case Connection.TRANSACTION_NONE -> "Ninguno";
+            default -> "Desconocido";
+        };
+    }
+
+
     @FXML
     private void initialize() {
         DataBaseConnection dataBaseConnection = new DataBaseConnection();
@@ -105,6 +131,10 @@ public class HelloController {
             connection.setAutoCommit(false);
             System.out.println("Transaction started.");
 
+            // Get the current isolation level and display it on the label
+            int isolationLevel = connection.getTransactionIsolation();
+            labelIsolation.setText("Nivel actual: " + getIsolationLevelName(isolationLevel));
+
             clearTxt();
             txtName.clear();
         } catch (SQLException e) {
@@ -118,12 +148,8 @@ public class HelloController {
             if (connection != null && !connection.isClosed()) {
                 connection.commit();
                 System.out.println("Transaction committed.");
-                // Clear and reload the data from the database
-                clientData.clear();
-                loadClientsFromDatabase();
 
-                // Refresh the TableView to display the latest data
-                clientTable.refresh();
+                reloadData();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -137,12 +163,8 @@ public class HelloController {
             if (connection != null && !connection.isClosed()) {
                 connection.rollback();
                 System.out.println("Transaction rolled back.");
-                // Clear and reload the data from the database
-                clientData.clear();
-                loadClientsFromDatabase();
 
-                // Refresh the TableView to display the latest data
-                clientTable.refresh();
+                reloadData();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -173,19 +195,63 @@ public class HelloController {
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted.");
 
-            // Clear and reload the data from the database
-            clientData.clear();
-            loadClientsFromDatabase();
-
-            // Refresh the TableView to display the latest data
-            clientTable.refresh();
-
+            reloadData();
             clearTxt();
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+    @FXML
+    public void updateClient(ActionEvent actionEvent) {
+        if (connection == null) {
+            System.out.println("Transaction not started. Call startTransaction first.");
+            return;
+        }
+
+        String clientName = txtName.getText();
+        String lastName = txtLastName.getText();
+        String address = txtAddress.getText();
+
+        if (clientName.isEmpty()) {
+            System.out.println("Client name must be provided.");
+            return;
+        }
+
+        String getClientIdQuery = "SELECT idCliente FROM Cliente WHERE Nombre = ?";
+        String updateClientQuery = "UPDATE Cliente SET Apellido = ?, Direccion = ? WHERE idCliente = ?";
+
+        try {
+            // Get the client ID based on the client's name
+            PreparedStatement getClientIdStmt = connection.prepareStatement(getClientIdQuery);
+            getClientIdStmt.setString(1, clientName);
+            ResultSet resultSet = getClientIdStmt.executeQuery();
+
+            if (resultSet.next()) {
+                int clientId = resultSet.getInt("idCliente");
+
+                // Update the client's last name and address
+                PreparedStatement updateClientStmt = connection.prepareStatement(updateClientQuery);
+                updateClientStmt.setString(1, lastName);
+                updateClientStmt.setString(2, address);
+                updateClientStmt.setInt(3, clientId);
+
+                int rowsAffectedClient = updateClientStmt.executeUpdate();
+                System.out.println(rowsAffectedClient + " row(s) updated in Cliente.");
+
+                reloadData();
+                clearTxt();
+
+            } else {
+                System.out.println("Client not found.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @FXML
     public void insertPhone(ActionEvent actionEvent) {
@@ -222,13 +288,7 @@ public class HelloController {
                 int rowsAffected = insertPhoneStmt.executeUpdate();
                 System.out.println(rowsAffected + " row(s) inserted.");
 
-                // Clear and reload the data from the database
-                clientData.clear();
-                loadClientsFromDatabase();
-
-                // Refresh the TableView to display the latest data
-                clientTable.refresh();
-
+                reloadData();
                 txtPhone.clear();
             } else {
                 System.out.println("Client not found.");
@@ -239,4 +299,44 @@ public class HelloController {
         }
     }
 
+    @FXML
+    public void changeIsolation(ActionEvent actionEvent) {
+        try {
+            if (connection == null) {
+                System.out.println("No active connection. Start a transaction first.");
+                return;
+            }
+
+            // Cycle through isolation levels
+            switch (currentIsolationLevel) {
+                case Connection.TRANSACTION_READ_UNCOMMITTED:
+                    currentIsolationLevel = Connection.TRANSACTION_READ_COMMITTED;
+                    break;
+                case Connection.TRANSACTION_READ_COMMITTED:
+                    currentIsolationLevel = Connection.TRANSACTION_REPEATABLE_READ;
+                    break;
+                case Connection.TRANSACTION_REPEATABLE_READ:
+                    currentIsolationLevel = Connection.TRANSACTION_SERIALIZABLE;
+                    break;
+                case Connection.TRANSACTION_SERIALIZABLE:
+                default:
+                    currentIsolationLevel = Connection.TRANSACTION_READ_UNCOMMITTED;
+                    break;
+            }
+
+            // Set the new isolation level in the connection
+            connection.setTransactionIsolation(currentIsolationLevel);
+
+            // Update the label with the new isolation level
+            labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
+            System.out.println("Isolation level changed to: " + getIsolationLevelName(currentIsolationLevel));
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    @FXML
+    public void reload(ActionEvent actionEvent) {
+        reloadData();
+    }
 }
