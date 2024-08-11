@@ -46,15 +46,34 @@ public class HelloController {
 
     private final ObservableList<client> clientData = FXCollections.observableArrayList();
     private Connection connection;
-    private int currentIsolationLevel;
+    private int currentIsolationLevel = Connection.TRANSACTION_READ_COMMITTED; // Default level
+
+    private void initializeConnection() {
+        try {
+            DataBaseConnection dataBaseConnection = new DataBaseConnection();
+            connection = dataBaseConnection.getConnection();
+            if (connection != null) {
+                connection.setAutoCommit(false); // Start in manual commit mode
+                connection.setTransactionIsolation(currentIsolationLevel);
+                labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
+            } else {
+                System.out.println("Failed to establish database connection.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setupTableView() {
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        addressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
+        clientTable.setItems(clientData);
+    }
 
     private void reloadData(){
-        // Clear and reload the data from the database
-        clientData.clear();
         loadClientsFromDatabase();
-
-        // Refresh the TableView to display the latest data
-        clientTable.refresh();;
     }
 
     private void clearTxt(){
@@ -65,14 +84,14 @@ public class HelloController {
 
     private void loadClientsFromDatabase() {
         try {
+            // IMPORTANT: Run this query in a new transaction to see uncommitted data.
             String query = "SELECT c.Nombre, c.Apellido, c.Direccion, t.Numero FROM Cliente c LEFT JOIN Telefono t ON c.idCliente = t.Cliente_idCliente";
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED); // Ensure we are reading uncommitted data
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(query);
 
-            // Clear existing data
-            clientData.clear();
+            clientData.clear(); // Clear existing data
 
-            // Populate the ObservableList with new data
             while (resultSet.next()) {
                 String name = resultSet.getString("Nombre");
                 String lastName = resultSet.getString("Apellido");
@@ -81,11 +100,10 @@ public class HelloController {
                 clientData.add(new client(name, lastName, address, phone));
             }
 
-            // Set the updated list to the TableView
             clientTable.setItems(clientData);
             clientTable.refresh();  // Ensure the table view is refreshed
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -104,41 +122,23 @@ public class HelloController {
 
     @FXML
     private void initialize() {
-        DataBaseConnection dataBaseConnection = new DataBaseConnection();
-        connection = dataBaseConnection.getConnection();
-
-        if (connection != null) {
-            nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-            lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-            addressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
-            phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
-
-            // Load data from the database
-            loadClientsFromDatabase();
-
-            // Assign the data to the table
-            clientTable.setItems(clientData);
-        } else {
-            System.out.println("Failed to establish database connection.");
-        }
+        initializeConnection();
+        setupTableView();
+        loadClientsFromDatabase();
     }
 
     @FXML
     public void startTransaction(ActionEvent actionEvent) {
-        try {
-            DataBaseConnection dataBaseConnection = new DataBaseConnection();
-            connection = dataBaseConnection.getConnection();
-            connection.setAutoCommit(false);
-            System.out.println("Transaction started.");
-
-            // Get the current isolation level and display it on the label
-            int isolationLevel = connection.getTransactionIsolation();
-            labelIsolation.setText("Nivel actual: " + getIsolationLevelName(isolationLevel));
-
-            clearTxt();
-            txtName.clear();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (connection == null) {
+            initializeConnection();
+        } else {
+            try {
+                connection.setAutoCommit(false);
+                System.out.println("Transaction started.");
+                labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -148,13 +148,11 @@ public class HelloController {
             if (connection != null && !connection.isClosed()) {
                 connection.commit();
                 System.out.println("Transaction committed.");
-
                 reloadData();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     @FXML
@@ -163,13 +161,11 @@ public class HelloController {
             if (connection != null && !connection.isClosed()) {
                 connection.rollback();
                 System.out.println("Transaction rolled back.");
-
                 reloadData();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     @FXML
@@ -195,6 +191,7 @@ public class HelloController {
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted.");
 
+            // Reload to see if other sessions can view uncommitted data
             reloadData();
             clearTxt();
 
@@ -302,12 +299,12 @@ public class HelloController {
     @FXML
     public void changeIsolation(ActionEvent actionEvent) {
         try {
+            // Ensure the connection is initialized for the session
             if (connection == null) {
-                System.out.println("No active connection. Start a transaction first.");
-                return;
+                initializeConnection();
             }
 
-            // Cycle through isolation levels
+            // Cycle through isolation levels only for the current session
             switch (currentIsolationLevel) {
                 case Connection.TRANSACTION_READ_UNCOMMITTED:
                     currentIsolationLevel = Connection.TRANSACTION_READ_COMMITTED;
@@ -324,17 +321,18 @@ public class HelloController {
                     break;
             }
 
-            // Set the new isolation level in the connection
+            // Set the new isolation level on the current session's connection
             connection.setTransactionIsolation(currentIsolationLevel);
 
-            // Update the label with the new isolation level
+            // Update the label to reflect the new isolation level
             labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
-            System.out.println("Isolation level changed to: " + getIsolationLevelName(currentIsolationLevel));
+            System.out.println("Isolation level changed to: " + getIsolationLevelName(currentIsolationLevel) + " for this session.");
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
     @FXML
     public void reload(ActionEvent actionEvent) {
         reloadData();
