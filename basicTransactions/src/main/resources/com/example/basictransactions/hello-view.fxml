@@ -16,21 +16,21 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="490.0" prefWidth="810.0" style="-fx-background-color: #2B324A;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.basictransactions.HelloController">
-   <AnchorPane prefHeight="490.0" prefWidth="812.0">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="490.0" prefWidth="841.0" style="-fx-background-color: #2B324A;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.basictransactions.HelloController">
+   <AnchorPane prefHeight="490.0" prefWidth="841.0">
       <children>
          <VBox layoutY="69.0" prefHeight="421.0" prefWidth="175.0" style="-fx-background-color: #424768;" />
-         <HBox prefHeight="100.0" prefWidth="810.0">
+         <HBox prefHeight="99.0" prefWidth="841.0">
             <children>
-               <ImageView fitHeight="85.0" fitWidth="811.0" pickOnBounds="true" preserveRatio="true">
+               <ImageView fitHeight="97.0" fitWidth="841.0" pickOnBounds="true" preserveRatio="true">
                   <image>
                      <Image url="@../../../images/banner.png" />
                   </image>
                </ImageView>
             </children>
          </HBox>
-         <Label fx:id="labelIsolation" layoutX="594.0" layoutY="157.0" prefHeight="45.0" prefWidth="204.0" text="Nivel actual:" textFill="WHITE" />
-         <Button layoutX="594.0" layoutY="213.0" mnemonicParsing="false" onAction="#reload" prefHeight="45.0" prefWidth="204.0" style="-fx-background-color: #8C7CE0; -fx-border-color: #9BA6C4; -fx-border-radius: 10; -fx-background-radius: 10;" text="Refrescar tabla" textFill="WHITE">
+         <Label fx:id="labelIsolation" layoutX="594.0" layoutY="157.0" prefHeight="45.0" prefWidth="239.0" text="Nivel actual:" textFill="WHITE" />
+         <Button layoutX="594.0" layoutY="213.0" mnemonicParsing="false" onAction="#reload" prefHeight="45.0" prefWidth="239.0" style="-fx-background-color: #8C7CE0; -fx-border-color: #9BA6C4; -fx-border-radius: 10; -fx-background-radius: 10;" text="Refrescar tabla" textFill="WHITE">
             <cursor>
                <Cursor fx:constant="HAND" />
             </cursor>
@@ -102,7 +102,7 @@
          <Cursor fx:constant="HAND" />
       </cursor></Button>
    <Accordion layoutX="49.0" layoutY="85.0" />
-   <Button layoutX="593.0" layoutY="100.0" mnemonicParsing="false" onAction="#changeIsolation" prefHeight="45.0" prefWidth="204.0" style="-fx-border-color: #9BA6C4; -fx-background-color: #8C7CE0; -fx-background-radius: 10; -fx-border-radius: 10;" text="Cambiar aislamiento" textFill="WHITE">
+   <Button layoutX="593.0" layoutY="100.0" mnemonicParsing="false" onAction="#changeIsolation" prefHeight="45.0" prefWidth="239.0" style="-fx-border-color: #9BA6C4; -fx-background-color: #8C7CE0; -fx-background-radius: 10; -fx-border-radius: 10;" text="Cambiar aislamiento" textFill="WHITE">
       <cursor>
          <Cursor fx:constant="HAND" />
       </cursor>
