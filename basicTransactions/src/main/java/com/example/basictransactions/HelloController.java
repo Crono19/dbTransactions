@@ -59,7 +59,6 @@ public class HelloController {
                 connection.setAutoCommit(false); // Start in manual commit mode
                 connection.setTransactionIsolation(currentIsolationLevel);
                 labelIsolation.setText("Nivel actual: " + getIsolationLevelName(currentIsolationLevel));
-                System.out.println("Initialized connection with isolation level: " + getIsolationLevelName(currentIsolationLevel));
             } else {
                 System.out.println("Failed to establish database connection.");
             }
